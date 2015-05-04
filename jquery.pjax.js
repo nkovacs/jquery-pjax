@@ -326,7 +326,7 @@ function pjax(options) {
       autofocusEl.focus();
     }
 
-    executeScriptTags(container.scripts)
+    executeScriptTags(container.scripts, context)
 
     var scrollTo = options.scrollTo
 
@@ -762,7 +762,7 @@ function extractContainer(data, xhr, options) {
     obj.contents.find('title').remove()
 
     // Gather all script[src] elements
-    obj.scripts = findAll(obj.contents, 'script[src]').remove()
+    obj.scripts = findAll(obj.contents, 'script').remove()
     obj.contents = obj.contents.not(obj.scripts)
   }
 
@@ -780,24 +780,49 @@ function extractContainer(data, xhr, options) {
 // scripts - jQuery object of script Elements
 //
 // Returns nothing.
-function executeScriptTags(scripts) {
+function executeScriptTags(scripts, context) {
   if (!scripts) return
 
   var existingScripts = $('script[src]')
 
-  scripts.each(function() {
+  var cb = function(next) {
     var src = this.src
     var matchedScripts = existingScripts.filter(function() {
       return this.src === src
     })
-    if (matchedScripts.length) return
+    if (matchedScripts.length) {
+      next()
+      return
+    }
 
-    var script = document.createElement('script')
-    var type = $(this).attr('type')
-    if (type) script.type = type
-    script.src = $(this).attr('src')
-    document.head.appendChild(script)
-  })
+    if (this.src) {
+      var script = document.createElement('script')
+      var type = $(this).attr('type')
+      if (type) script.type = type
+      var done = function() {
+        script.onload = null;
+        script.onerror = null;
+        next()
+      }
+      script.onload = script.onerror = done
+      script.src = $(this).attr('src')
+      document.head.appendChild(script)
+    } else {
+      context.append(this)
+      next()
+    }
+  }
+
+  var i = 0;
+  var next = function() {
+    if (i >= scripts.length) {
+      return
+    }
+    var script = scripts[i]
+    i++
+    cb.call(script, next)
+  }
+  next()
 }
 
 // Internal: History DOM caching class.
