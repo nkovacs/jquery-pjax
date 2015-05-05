@@ -245,7 +245,6 @@ function pjax(options) {
 
     fire('pjax:complete', [xhr, textStatus, options])
 
-    fire('pjax:end', [xhr, options])
   }
 
   options.error = function(xhr, textStatus, errorThrown) {
@@ -311,36 +310,42 @@ function pjax(options) {
 
     if (container.title) document.title = container.title
 
-    fire('pjax:beforeReplace', [container.contents, options], {
+    var deferreds = []
+
+    fire('pjax:beforeReplace', [container.contents, options, deferreds], {
       state: pjax.state,
       previousState: previousState
     })
-    context.html(container.contents)
+    $.when.apply(null, deferreds).then(function() {
+      context.html(container.contents)
 
-    // FF bug: Won't autofocus fields that are inserted via JS.
-    // This behavior is incorrect. So if theres no current focus, autofocus
-    // the last field.
-    //
-    // http://www.w3.org/html/wg/drafts/html/master/forms.html
-    var autofocusEl = context.find('input[autofocus], textarea[autofocus]').last()[0]
-    if (autofocusEl && document.activeElement !== autofocusEl) {
-      autofocusEl.focus();
-    }
+      // FF bug: Won't autofocus fields that are inserted via JS.
+      // This behavior is incorrect. So if theres no current focus, autofocus
+      // the last field.
+      //
+      // http://www.w3.org/html/wg/drafts/html/master/forms.html
+      var autofocusEl = context.find('input[autofocus], textarea[autofocus]').last()[0]
+      if (autofocusEl && document.activeElement !== autofocusEl) {
+        autofocusEl.focus();
+      }
 
-    executeScriptTags(container.scripts, context)
+      executeScriptTags(container.scripts, context)
 
-    var scrollTo = options.scrollTo
+      var scrollTo = options.scrollTo
 
-    // Ensure browser scrolls to the element referenced by the URL anchor
-    if (hash) {
-      var name = decodeURIComponent(hash.slice(1))
-      var target = document.getElementById(name) || document.getElementsByName(name)[0]
-      if (target) scrollTo = $(target).offset().top
-    }
+      // Ensure browser scrolls to the element referenced by the URL anchor
+      if (hash) {
+        var name = decodeURIComponent(hash.slice(1))
+        var target = document.getElementById(name) || document.getElementsByName(name)[0]
+        if (target) scrollTo = $(target).offset().top
+      }
 
-    if (typeof scrollTo == 'number') $(window).scrollTop(scrollTo)
+      if (typeof scrollTo == 'number') $(window).scrollTop(scrollTo)
 
-    fire('pjax:success', [data, status, xhr, options])
+      fire('pjax:success', [data, status, xhr, options])
+
+      fire('pjax:end', [xhr, options])
+    })
   }
 
 
@@ -492,21 +497,26 @@ function onPjaxPopstate(event) {
 
         pjax.state = state
         if (state.title) document.title = state.title
+
+        var deferreds = []
+
         var beforeReplaceEvent = $.Event('pjax:beforeReplace', {
           state: state,
           previousState: previousState
         })
-        container.trigger(beforeReplaceEvent, [contents, options])
-        container.html(contents)
+        container.trigger(beforeReplaceEvent, [contents, options, deferreds])
+        $.when.apply(null, deferreds).then(function() {
+          container.html(contents)
 
-        container.trigger('pjax:end', [null, options])
+          container.trigger('pjax:end', [null, options])
+          // Force reflow/relayout before the browser tries to restore the
+          // scroll position.
+          container[0].offsetHeight
+        })
       } else {
         pjax(options)
       }
 
-      // Force reflow/relayout before the browser tries to restore the
-      // scroll position.
-      container[0].offsetHeight
     } else {
       locationReplace(location.href)
     }
