@@ -250,8 +250,8 @@ function pjax(options) {
   options.error = function(xhr, textStatus, errorThrown) {
     var container = extractContainer("", xhr, options)
     // Check redirect status code
-	var redirect = (xhr.status >= 301 && xhr.status <= 303)
-	// Do not fire pjax::error in case of redirect
+    var redirect = (xhr.status >= 301 && xhr.status <= 303)
+    // Do not fire pjax::error in case of redirect
     var allowed = redirect || fire('pjax:error', [xhr, textStatus, errorThrown, options])
     if (redirect || options.type == 'GET' && textStatus !== 'abort' && allowed) {
       locationReplace(container.url)
