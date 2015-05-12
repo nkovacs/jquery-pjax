@@ -330,6 +330,7 @@ function pjax(options) {
       }
 
       executeScriptTags(container.scripts, context)
+      executeStylesheets(container.stylesheets)
 
       var scrollTo = options.scrollTo
 
@@ -777,13 +778,38 @@ function extractContainer(data, xhr, options) {
 
     // Gather all script[src] elements
     obj.scripts = findAll(obj.contents, 'script').remove()
-    obj.contents = obj.contents.not(obj.scripts)
+    obj.stylesheets = findAll(obj.contents, 'link[rel=stylesheet]').remove()
+    obj.contents = obj.contents.not(obj.scripts).not(obj.stylesheets)
   }
 
   // Trim any whitespace off the title
   if (obj.title) obj.title = $.trim(obj.title)
 
   return obj
+}
+
+// Load stylesheets
+//
+// sheets - jQuery object of link Elements
+//
+// Returns nothing.
+function executeStylesheets(sheets) {
+  if (!sheets) return
+
+  var existingSheets = $('link[rel=stylesheet]')
+
+  sheets.each(function() {
+    var href = this.href
+    var matchedSheets = existingSheets.filter(function() {
+      return this.href === href
+    })
+    if (matchedSheets.length) return
+
+    var link = document.createElement('link')
+    link.rel = "stylesheet";
+    link.href = $(this).attr('href')
+    document.head.appendChild(link)
+  })
 }
 
 // Load an execute scripts using standard script request.
