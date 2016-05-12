@@ -26,8 +26,6 @@
 //                 replace - Want to use replaceState instead? That's cool.
 //                 history - Work with window.history. Defaults to true
 //                   cache - Whether to cache pages HTML. Defaults to true
-//            pushRedirect - Whether to add a browser history entry upon redirect. Defaults to false.
-//         replaceRedirect - Whether to replace URL without adding a browser history entry upon redirect. Defaults to true.
 //     skipOuterContainers - When pjax containers are nested and this option is true,
 //                           the closest pjax block will handle the event. Otherwise, the top
 //                           container will handle the event. Defaults to false.
@@ -270,12 +268,7 @@ function pjax(options) {
     // Do not fire pjax::error in case of redirect
     var allowed = redirect || fire('pjax:error', [xhr, textStatus, errorThrown, options])
     if (redirect || options.type == 'GET' && textStatus !== 'abort' && allowed) {
-      if (options.replaceRedirect) {
-        locationReplace(container.url)
-      } else if (options.pushRedirect) {
-        window.history.pushState(null, "", container.url)
-        window.location.replace(container.url)
-      }
+      locationReplace(container.url)
     }
   }
 
@@ -439,7 +432,6 @@ function pjaxReload(container, options) {
 //
 // Returns nothing.
 function locationReplace(url) {
-  if (!pjax.options.history) return;
   window.history.replaceState(null, "", pjax.state.url)
   window.location.replace(url)
 }
@@ -988,8 +980,6 @@ function enable() {
     scrollTo: 0,
     maxCacheLength: 20,
     version: findVersion,
-    pushRedirect: false,
-    replaceRedirect: true,
     skipOuterContainers: false,
     ieRedirectCompatibility: true
   }
