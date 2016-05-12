@@ -978,8 +978,8 @@ function enable() {
   $.pjax.submit = handleSubmit
   $.pjax.reload = pjaxReload
   $.pjax.defaults = {
-	history: true,
-	cache: true,
+    history: true,
+    cache: true,
     timeout: 650,
     push: true,
     replace: false,
