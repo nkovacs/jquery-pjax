@@ -852,9 +852,18 @@ function executeScriptTags(scripts, context) {
       return
     }
 
-    if (src) {
-      $.getScript(src).done(next).fail(next)
-      document.head.appendChild(this)
+    if (this.src) {
+      var script = document.createElement('script')
+      var type = $(this).attr('type')
+      if (type) script.type = type
+      var done = function () {
+        script.onload = null;
+        script.onerror = null;
+        next()
+      }
+      script.onload = script.onerror = done
+      script.src = $(this).attr('src')
+      document.head.appendChild(script)
     } else {
       context.append(this)
       next()

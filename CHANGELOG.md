@@ -13,7 +13,6 @@ Under development
 - Bug #37: Added `X-Ie-Redirect-Compatibility` header for IE. Fixes error on 302 redirect without `Location` header (silverfire)
 - Enh #25: Blur the focused element if it's inside Pjax container (GeorgeGardiner)
 - Enh #27: Added `pushRedirect`, `replaceRedirectOptions` options (beowulfenator)
-- Chg: JavaScripts load through PJAX will be processed by `jQuery.ajaxPrefiler` when it's configured (silverfire)
 - New: Added `skipOuterContainers` option (silverfire)
 
 2.0.3 Mar 7, 2015
