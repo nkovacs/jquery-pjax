@@ -810,15 +810,26 @@ function executeScriptTags(scripts, context) {
     var matchedScripts = existingScripts.filter(function () {
       return this.src === src
     })
+    var xhr
 
     if (matchedScripts.length) {
-      next()
+      xhr = matchedScripts.data('pjaxXHR')
+      if (xhr) {
+        xhr.always(next)
+      } else {
+        next()
+      }
       return
     }
 
     if (src) {
-      $.getScript(src).done(next).fail(next)
+      var $this = $(this)
+      xhr = $.getScript(src).always(function() {
+        $this.data('pjaxXHR', null)
+        next()
+      })
       document.head.appendChild(this)
+      $this.data('pjaxXHR', xhr)
     } else {
       context.append(this)
       next()
