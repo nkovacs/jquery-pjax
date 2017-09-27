@@ -391,7 +391,8 @@ function pjax(options) {
       timeout: options.timeout,
       cache: options.cache
     }
-    window.history.replaceState(pjax.state, document.title)
+    if (options.history)
+      window.history.replaceState(pjax.state, document.title)
   }
 
   // New request can not override the existing one when option skipOuterContainers is set to true
