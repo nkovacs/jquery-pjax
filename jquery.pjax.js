@@ -36,14 +36,18 @@
 // Returns the jQuery object
 function fnPjax(selector, container, options) {
   options = optionsFor(container, options)
-  return this.on('click.pjax', selector, function(event) {
+  var handler = function(event) {
     var opts = options
     if (!opts.container) {
       opts = $.extend({}, options)
       opts.container = $(this).attr('data-pjax')
     }
     handleClick(event, opts)
-  })
+  }
+  $(selector).removeClass('data-pjax');
+  return this
+    .off('click.pjax', selector, handler)
+    .on('click.pjax', selector, handler)
 }
 
 // Public: pjax on click handler
